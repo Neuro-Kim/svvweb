@@ -11,13 +11,13 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #f0f0f0;
+            background-color: black; /* Set background color to black */
         }
         #rod {
             width: 10px; 
             height: 90vh; /* 90% of the viewport height */
-            background-image: radial-gradient(circle, black 40%, transparent 40%);
-            background-size: 10px 10px; /* Double the size of each circle */
+            background-image: radial-gradient(circle, white 40%, transparent 40%);
+            background-size: 10px 10px; /* Size of each circle */
             background-repeat: repeat-y;
             position: absolute;
             top: 50%;
@@ -25,10 +25,28 @@
             transform-origin: center;
             transform: translate(-50%, -50%) rotate(0deg); /* Center the rod */
         }
+        .touch-area {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 33.33%;
+        }
+        #left {
+            left: 0;
+        }
+        #middle {
+            left: 33.33%;
+        }
+        #right {
+            right: 0;
+        }
     </style>
 </head>
 <body>
     <div id="rod"></div>
+    <div id="left" class="touch-area"></div>
+    <div id="middle" class="touch-area"></div>
+    <div id="right" class="touch-area"></div>
     <script>
         const rod = document.getElementById('rod');
         let angle = (Math.random() * 60) - 30; // Random starting angle between -30 and +30 degrees for vertical tests
@@ -38,29 +56,42 @@
 
         rod.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
 
+        const updateAngle = (change) => {
+            angle += change;
+            rod.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+        };
+
+        const handleSpace = () => {
+            if (isVerticalTest) {
+                verticalAngles.push(angle % 360); // Store the vertical angle
+                if (verticalAngles.length === 3) {
+                    isVerticalTest = false; // Switch to horizontal test
+                    angle = (Math.random() * 60) + 60; // Reset angle for horizontal test between 60 and 120 degrees
+                }
+            } else {
+                horizontalAngles.push(angle % 360); // Store the horizontal angle as is
+                if (horizontalAngles.length === 3) {
+                    localStorage.setItem('verticalAngles', JSON.stringify(verticalAngles));
+                    localStorage.setItem('horizontalAngles', JSON.stringify(horizontalAngles));
+                    window.location.href = 'report.html'; // Redirect to report page
+                }
+            }
+            angle = isVerticalTest ? (Math.random() * 60) - 30 : (Math.random() * 60) + 60; // New random angle after space is pressed
+            rod.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+        };
+
+        document.getElementById('left').addEventListener('click', () => updateAngle(-0.5));
+        document.getElementById('middle').addEventListener('click', handleSpace);
+        document.getElementById('right').addEventListener('click', () => updateAngle(0.5));
+
         document.addEventListener('keydown', (event) => {
             if (event.key === 'ArrowLeft') {
-                angle -= 0.5; // Rotate counter-clockwise
+                updateAngle(-0.5);
             } else if (event.key === 'ArrowRight') {
-                angle += 0.5; // Rotate clockwise
+                updateAngle(0.5);
             } else if (event.key === ' ') {
-                if (isVerticalTest) {
-                    verticalAngles.push(angle % 360); // Store the vertical angle
-                    if (verticalAngles.length === 3) {
-                        isVerticalTest = false; // Switch to horizontal test
-                        angle = (Math.random() * 60) + 60; // Reset angle for horizontal test between 60 and 120 degrees
-                    }
-                } else {
-                    horizontalAngles.push(angle % 360); // Store the horizontal angle as is
-                    if (horizontalAngles.length === 3) {
-                        localStorage.setItem('verticalAngles', JSON.stringify(verticalAngles));
-                        localStorage.setItem('horizontalAngles', JSON.stringify(horizontalAngles));
-                        window.location.href = 'report.html'; // Redirect to report page
-                    }
-                }
-                angle = isVerticalTest ? (Math.random() * 60) - 30 : (Math.random() * 60) + 60; // New random angle after space is pressed
+                handleSpace();
             }
-            rod.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
         });
     </script>
 </body>
