@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subjective Visual Vertical Test</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        #rod {
+            width: 10px; 
+            height: 90vh; /* 90% of the viewport height */
+            background-image: radial-gradient(circle, black 40%, transparent 40%);
+            background-size: 10px 10px; /* Double the size of each circle */
+            background-repeat: repeat-y;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: center;
+            transform: translate(-50%, -50%) rotate(0deg); /* Center the rod */
+        }
+    </style>
+</head>
+<body>
+    <div id="rod"></div>
+    <script>
+        const rod = document.getElementById('rod');
+        let angle = (Math.random() * 60) - 30; // Random starting angle between -30 and +30 degrees for vertical tests
+        let verticalAngles = []; // Array to store vertical angles
+        let horizontalAngles = []; // Array to store horizontal angles
+        let isVerticalTest = true; // Flag to switch between tests
+
+        rod.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowLeft') {
+                angle -= 0.5; // Rotate counter-clockwise
+            } else if (event.key === 'ArrowRight') {
+                angle += 0.5; // Rotate clockwise
+            } else if (event.key === ' ') {
+                if (isVerticalTest) {
+                    verticalAngles.push(angle % 360); // Store the vertical angle
+                    if (verticalAngles.length === 3) {
+                        isVerticalTest = false; // Switch to horizontal test
+                        angle = (Math.random() * 60) + 60; // Reset angle for horizontal test between 60 and 120 degrees
+                    }
+                } else {
+                    horizontalAngles.push(angle % 360); // Store the horizontal angle as is
+                    if (horizontalAngles.length === 3) {
+                        localStorage.setItem('verticalAngles', JSON.stringify(verticalAngles));
+                        localStorage.setItem('horizontalAngles', JSON.stringify(horizontalAngles));
+                        window.location.href = 'report.html'; // Redirect to report page
+                    }
+                }
+                angle = isVerticalTest ? (Math.random() * 60) - 30 : (Math.random() * 60) + 60; // New random angle after space is pressed
+            }
+            rod.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+        });
+    </script>
+</body>
+</html>
