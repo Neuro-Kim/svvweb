@@ -61,15 +61,39 @@
             rod.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
         };
 
+        // 각도를 정규화하여 0~90 또는 -90~0 범위로 변환하는 함수
+        const normalizeAngle = (angle) => {
+            // 360도로 정규화
+            let normalizedAngle = angle % 360;
+            
+            // 음수 각도를 양수로 변환 (예: -10은 350으로)
+            if (normalizedAngle < 0) {
+                normalizedAngle += 360;
+            }
+            
+            // 0~90도 또는 270~360도(즉, -90~0도)로 변환
+            if (normalizedAngle > 90 && normalizedAngle <= 270) {
+                // 기울기가 반대(음수)인 경우, 반대편 각도 계산
+                normalizedAngle = normalizedAngle - 180;
+            } else if (normalizedAngle > 270) {
+                // 270~360도를 -90~0도로 변환
+                normalizedAngle = normalizedAngle - 360;
+            }
+            
+            return normalizedAngle;
+        };
+
         const handleSpace = () => {
+            const normalizedAngle = normalizeAngle(angle);
+            
             if (isVerticalTest) {
-                verticalAngles.push(angle % 360); // Store the vertical angle
+                verticalAngles.push(normalizedAngle); // 정규화된 각도 저장
                 if (verticalAngles.length === 3) {
                     isVerticalTest = false; // Switch to horizontal test
                     angle = (Math.random() * 60) + 60; // Reset angle for horizontal test between 60 and 120 degrees
                 }
             } else {
-                horizontalAngles.push(angle % 360); // Store the horizontal angle as is
+                horizontalAngles.push(normalizedAngle); // 정규화된 각도 저장
                 if (horizontalAngles.length === 3) {
                     localStorage.setItem('verticalAngles', JSON.stringify(verticalAngles));
                     localStorage.setItem('horizontalAngles', JSON.stringify(horizontalAngles));

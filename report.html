@@ -73,6 +73,34 @@
             width: 100%;
             font-size: 16px;
         }
+        .center-reference {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background-color: #ddd;
+        }
+        .center-reference-vertical {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 1px;
+            background-color: #ddd;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -103,17 +131,22 @@
     <div class="circle-container">
         <div>
             <div class="circle" id="svvCircle">
+                <div class="center-reference"></div>
+                <div class="center-reference-vertical"></div>
                 <!-- SVV Rods will be drawn here -->
             </div>
             <div class="circle-label">SVV</div>
         </div>
         <div>
             <div class="circle" id="svhCircle">
+                <div class="center-reference"></div>
+                <div class="center-reference-vertical"></div>
                 <!-- SVH Rods will be drawn here -->
             </div>
             <div class="circle-label">SVH</div>
         </div>
     </div>
+    <button id="printBtn">Print Report</button>
     <script>
         const verticalAngles = JSON.parse(localStorage.getItem('verticalAngles')) || [];
         const horizontalAngles = JSON.parse(localStorage.getItem('horizontalAngles')) || [];
@@ -135,8 +168,9 @@
             document.getElementById('svvCircle').appendChild(rod);
         });
 
-        const verticalAverage = verticalSum / verticalAngles.length;
-        const verticalVariance = verticalAngles.reduce((acc, angle) => acc + Math.pow(angle - verticalAverage, 2), 0) / verticalAngles.length;
+        const verticalAverage = verticalSum / verticalAngles.length || 0;
+        const verticalVariance = verticalAngles.length ? 
+            verticalAngles.reduce((acc, angle) => acc + Math.pow(angle - verticalAverage, 2), 0) / verticalAngles.length : 0;
         const verticalStdDev = Math.sqrt(verticalVariance);
         document.getElementById('verticalAverage').textContent = `${verticalAverage.toFixed(2)} ± ${verticalStdDev.toFixed(2)}`;
 
@@ -147,17 +181,23 @@
             svvTable.appendChild(row); // Append to the same table body
             horizontalSum += angle;
 
-            // Draw horizontal rod in SVH circle, rotated 90 degrees
+            // Draw horizontal rod in SVH circle
             const rod = document.createElement('div');
             rod.className = 'rod horizontal-rod';
             rod.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
             document.getElementById('svhCircle').appendChild(rod);
         });
 
-        const horizontalAverage = horizontalSum / horizontalAngles.length;
-        const horizontalVariance = horizontalAngles.reduce((acc, angle) => acc + Math.pow(angle - horizontalAverage, 2), 0) / horizontalAngles.length;
+        const horizontalAverage = horizontalSum / horizontalAngles.length || 0;
+        const horizontalVariance = horizontalAngles.length ? 
+            horizontalAngles.reduce((acc, angle) => acc + Math.pow(angle - horizontalAverage, 2), 0) / horizontalAngles.length : 0;
         const horizontalStdDev = Math.sqrt(horizontalVariance);
         document.getElementById('horizontalAverage').textContent = `${horizontalAverage.toFixed(2)} ± ${horizontalStdDev.toFixed(2)}`;
+
+        // Print functionality
+        document.getElementById('printBtn').addEventListener('click', () => {
+            window.print();
+        });
     </script>
 </body>
 </html>

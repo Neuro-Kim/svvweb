@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rotating Rod</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #rod {
+            position: absolute;
+            width: 4px;
+            background-color: black;
+            transform-origin: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="rod"></div>
+    <script>
+        const rod = document.getElementById('rod');
+        let angle = Math.random() * 360; // Random starting angle
+
+        // Set rod height to 90% of screen height
+        function setRodHeight() {
+            const screenHeight = window.innerHeight;
+            rod.style.height = (screenHeight * 0.9) + 'px';
+            rod.style.top = (screenHeight - rod.offsetHeight) / 2 + 'px';
+        }
+
+        // Update rod rotation
+        function updateRotation() {
+            rod.style.transform = `rotate(${angle}deg)`;
+        }
+
+        // Initial setup
+        setRodHeight();
+        updateRotation();
+
+        // Handle keyboard events
+        document.addEventListener('keydown', (event) => {
+            switch(event.key) {
+                case 'ArrowLeft':
+                    angle -= 0.5;
+                    updateRotation();
+                    break;
+                case 'ArrowRight':
+                    angle += 0.5;
+                    updateRotation();
+                    break;
+                case ' ':
+                    // Calculate angle relative to vertical (0 degrees)
+                    let relativeAngle = angle % 360;
+                    if (relativeAngle < 0) relativeAngle += 360;
+                    alert(`Angle relative to vertical: ${relativeAngle.toFixed(1)}°`);
+                    break;
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', setRodHeight);
+    </script>
+</body>
+</html>
