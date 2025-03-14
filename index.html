@@ -53,6 +53,7 @@
         let verticalAngles = []; // Array to store vertical angles
         let horizontalAngles = []; // Array to store horizontal angles
         let isVerticalTest = true; // Flag to switch between tests
+        let lastTestCompleted = false; // Flag to track if the last test was completed
 
         rod.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
 
@@ -88,20 +89,52 @@
             
             if (isVerticalTest) {
                 verticalAngles.push(normalizedAngle); // 정규화된 각도 저장
+                lastTestCompleted = true;
                 if (verticalAngles.length === 3) {
                     isVerticalTest = false; // Switch to horizontal test
                     angle = (Math.random() * 60) + 60; // Reset angle for horizontal test between 60 and 120 degrees
+                } else {
+                    angle = (Math.random() * 60) - 30; // New random angle for vertical test
                 }
             } else {
                 horizontalAngles.push(normalizedAngle); // 정규화된 각도 저장
+                lastTestCompleted = true;
                 if (horizontalAngles.length === 3) {
                     localStorage.setItem('verticalAngles', JSON.stringify(verticalAngles));
                     localStorage.setItem('horizontalAngles', JSON.stringify(horizontalAngles));
                     window.location.href = 'report.html'; // Redirect to report page
+                } else {
+                    angle = (Math.random() * 60) + 60; // New random angle for horizontal test
                 }
             }
-            angle = isVerticalTest ? (Math.random() * 60) - 30 : (Math.random() * 60) + 60; // New random angle after space is pressed
             rod.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+        };
+
+        // 백스페이스 처리 함수 - 가장 최근 테스트 취소
+        const handleBackspace = () => {
+            if (!lastTestCompleted) return; // 취소할 테스트가 없으면 아무것도 하지 않음
+            
+            if (isVerticalTest) {
+                if (verticalAngles.length > 0) {
+                    verticalAngles.pop(); // 마지막으로 저장된 수직 각도 제거
+                    angle = (Math.random() * 60) - 30; // 새로운 수직 테스트 각도 설정
+                }
+            } else {
+                if (horizontalAngles.length > 0) {
+                    horizontalAngles.pop(); // 마지막으로 저장된 수평 각도 제거
+                    angle = (Math.random() * 60) + 60; // 새로운 수평 테스트 각도 설정
+                } else {
+                    // 수평 각도가 없는 경우 수직 테스트로 돌아감
+                    isVerticalTest = true;
+                    if (verticalAngles.length > 0) {
+                        verticalAngles.pop(); // 마지막 수직 각도 제거
+                    }
+                    angle = (Math.random() * 60) - 30; // 수직 테스트 각도 설정
+                }
+            }
+            
+            rod.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+            lastTestCompleted = false; // 테스트가 취소되었으므로 플래그 재설정
         };
 
         document.getElementById('left').addEventListener('click', () => updateAngle(-0.5));
@@ -115,6 +148,8 @@
                 updateAngle(0.5);
             } else if (event.key === ' ') {
                 handleSpace();
+            } else if (event.key === 'Backspace') {
+                handleBackspace(); // 백스페이스 키 처리
             }
         });
     </script>
