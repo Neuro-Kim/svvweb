@@ -64,25 +64,40 @@
 
         // 각도를 정규화하여 0~90 또는 -90~0 범위로 변환하는 함수
         const normalizeAngle = (angle) => {
-            // 360도로 정규화
-            let normalizedAngle = angle % 360;
-            
-            // 음수 각도를 양수로 변환 (예: -10은 350으로)
-            if (normalizedAngle < 0) {
-                normalizedAngle += 360;
-            }
-            
-            // 0~90도 또는 270~360도(즉, -90~0도)로 변환
-            if (normalizedAngle > 90 && normalizedAngle <= 270) {
-                // 기울기가 반대(음수)인 경우, 반대편 각도 계산
-                normalizedAngle = normalizedAngle - 180;
-            } else if (normalizedAngle > 270) {
-                // 270~360도를 -90~0도로 변환
-                normalizedAngle = normalizedAngle - 360;
-            }
-            
-            return normalizedAngle;
-        };
+    // 360도로 정규화
+    let normalizedAngle = angle % 360;
+    if (normalizedAngle < 0) {
+        normalizedAngle += 360;
+    }
+
+    if (isVerticalTest) {
+        // SVV: 기존 수직 테스트 정규화 (0~90 또는 -90~0)
+        if (normalizedAngle > 90 && normalizedAngle <= 270) {
+            normalizedAngle = normalizedAngle - 180;
+        } else if (normalizedAngle > 270) {
+            normalizedAngle = normalizedAngle - 360;
+        }
+    } else {
+        // SVH: 수평 테스트 정규화
+        if (normalizedAngle > 90 && normalizedAngle <= 180) {
+            // 90~180도 구간: 91 → 1, 179 → 89, 89 → -1, 1 → -89
+            normalizedAngle = normalizedAngle - 90;
+        } else if (normalizedAngle > 180 && normalizedAngle <= 270) {
+            // 180~270도 구간: 181 → -89, 269 → -1
+            normalizedAngle = 270 - normalizedAngle;
+            normalizedAngle = -normalizedAngle;
+        } else if (normalizedAngle > 270 && normalizedAngle < 360) {
+            // 270~360도 구간: 271 → 1, 359 → 89
+            normalizedAngle = normalizedAngle - 270;
+        } else if (normalizedAngle >= 0 && normalizedAngle <= 90) {
+            // 0~90도 구간: 89 → -1, 1 → -89
+            normalizedAngle = 90 - normalizedAngle;
+            normalizedAngle = -normalizedAngle;
+        }
+    }
+
+    return normalizedAngle;
+};
 
         const handleSpace = () => {
             const normalizedAngle = normalizeAngle(angle);
