@@ -60,7 +60,7 @@
     <script>
         const rod = document.getElementById('rod');
         const testCounter = document.getElementById('test-counter');
-        let previousAngles = []; // 이전에 생성된 모든 각도를 저장하는 배열
+        let savedAngles = []; // 검사자가 저장한 각도들을 저장하는 배열
         let angle;
         let verticalAngles = []; // Array to store vertical angles
         let horizontalAngles = []; // Array to store horizontal angles
@@ -75,7 +75,7 @@
             testCounter.textContent = `${currentTest}/6`;
         };
         
-        // 이전 각도와 15도 이상 차이나는 새로운 랜덤 각도 생성하는 함수
+        // 이전에 저장한 각도들과 15도 이상 차이나는 새로운 랜덤 각도 생성하는 함수
         const generateNewAngle = (isVertical) => {
             let newAngle;
             let validAngle = false;
@@ -90,10 +90,10 @@
                     newAngle = (Math.random() * 60) + 60; // 60 ~ 120 범위
                 }
                 
-                // 이전 각도들과 비교하여 15도 이상 차이나는지 확인
+                // 이전에 저장한 각도들과 비교하여 15도 이상 차이나는지 확인
                 validAngle = true;
-                for (let prevAngle of previousAngles) {
-                    if (Math.abs(newAngle - prevAngle) < 15) {
+                for (let savedAngle of savedAngles) {
+                    if (Math.abs(newAngle - savedAngle) < 15) {
                         validAngle = false;
                         break;
                     }
@@ -102,8 +102,6 @@
                 attempts++;
             }
             
-            // 새 각도를 이전 각도 배열에 추가
-            previousAngles.push(newAngle);
             return newAngle;
         };
         
@@ -159,6 +157,9 @@
         const handleSpace = () => {
             const normalizedAngle = normalizeAngle(angle);
             
+            // 검사자가 입력한 각도를 savedAngles 배열에 저장
+            savedAngles.push(angle);
+            
             if (isVerticalTest) {
                 verticalAngles.push(normalizedAngle); // 정규화된 각도 저장
                 lastTestCompleted = true;
@@ -198,32 +199,25 @@
                 updateTestCounter();
             }
             
+            // 가장 최근에 저장한 각도 제거
+            if (savedAngles.length > 0) {
+                savedAngles.pop();
+            }
+            
             if (isVerticalTest) {
                 if (verticalAngles.length > 0) {
                     verticalAngles.pop(); // 마지막으로 저장된 수직 각도 제거
-                    // 이전 각도도 제거 (가장 최근에 추가된 것)
-                    if (previousAngles.length > 0) {
-                        previousAngles.pop();
-                    }
                     angle = generateNewAngle(true); // 새로운 수직 테스트 각도 설정
                 }
             } else {
                 if (horizontalAngles.length > 0) {
                     horizontalAngles.pop(); // 마지막으로 저장된 수평 각도 제거
-                    // 이전 각도도 제거 (가장 최근에 추가된 것)
-                    if (previousAngles.length > 0) {
-                        previousAngles.pop();
-                    }
                     angle = generateNewAngle(false); // 새로운 수평 테스트 각도 설정
                 } else {
                     // 수평 각도가 없는 경우 수직 테스트로 돌아감
                     isVerticalTest = true;
                     if (verticalAngles.length > 0) {
                         verticalAngles.pop(); // 마지막 수직 각도 제거
-                        // 이전 각도도 제거 (가장 최근에 추가된 것)
-                        if (previousAngles.length > 0) {
-                            previousAngles.pop();
-                        }
                     }
                     angle = generateNewAngle(true); // 수직 테스트 각도 설정
                 }
