@@ -40,20 +40,42 @@
         #right {
             right: 0;
         }
+        #test-counter {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #888888;
+            font-size: 24px;
+            font-family: Arial, sans-serif;
+            z-index: 100;
+        }
     </style>
 </head>
 <body>
+    <div id="test-counter">1/6</div>
     <div id="rod"></div>
     <div id="left" class="touch-area"></div>
     <div id="middle" class="touch-area"></div>
     <div id="right" class="touch-area"></div>
     <script>
         const rod = document.getElementById('rod');
+        const testCounter = document.getElementById('test-counter');
         let angle = (Math.random() * 60) - 30; // Random starting angle between -30 and +30 degrees for vertical tests
         let verticalAngles = []; // Array to store vertical angles
         let horizontalAngles = []; // Array to store horizontal angles
         let isVerticalTest = true; // Flag to switch between tests
         let lastTestCompleted = false; // Flag to track if the last test was completed
+        
+        // 현재 테스트 카운터 초기화 (1부터 시작)
+        let currentTest = 1;
+        
+        // 테스트 카운터 표시 업데이트 함수
+        const updateTestCounter = () => {
+            testCounter.textContent = `${currentTest}/6`;
+        };
+        
+        // 초기 카운터 표시
+        updateTestCounter();
 
         rod.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
 
@@ -105,6 +127,9 @@
             if (isVerticalTest) {
                 verticalAngles.push(normalizedAngle); // 정규화된 각도 저장
                 lastTestCompleted = true;
+                currentTest++; // 테스트 카운터 증가
+                updateTestCounter(); // 테스트 카운터 표시 업데이트
+                
                 if (verticalAngles.length === 3) {
                     isVerticalTest = false; // Switch to horizontal test
                     angle = (Math.random() * 60) + 60; // Reset angle for horizontal test between 60 and 120 degrees
@@ -114,6 +139,9 @@
             } else {
                 horizontalAngles.push(normalizedAngle); // 정규화된 각도 저장
                 lastTestCompleted = true;
+                currentTest++; // 테스트 카운터 증가
+                updateTestCounter(); // 테스트 카운터 표시 업데이트
+                
                 if (horizontalAngles.length === 3) {
                     localStorage.setItem('verticalAngles', JSON.stringify(verticalAngles));
                     localStorage.setItem('horizontalAngles', JSON.stringify(horizontalAngles));
@@ -128,6 +156,12 @@
         // 백스페이스 처리 함수 - 가장 최근 테스트 취소
         const handleBackspace = () => {
             if (!lastTestCompleted) return; // 취소할 테스트가 없으면 아무것도 하지 않음
+            
+            // 테스트 카운터 감소
+            if (currentTest > 1) {
+                currentTest--;
+                updateTestCounter();
+            }
             
             if (isVerticalTest) {
                 if (verticalAngles.length > 0) {
