@@ -60,7 +60,8 @@
     <script>
         const rod = document.getElementById('rod');
         const testCounter = document.getElementById('test-counter');
-        let angle = (Math.random() * 60) - 30; // Random starting angle between -30 and +30 degrees for vertical tests
+        let previousAngles = []; // 이전에 생성된 모든 각도를 저장하는 배열
+        let angle;
         let verticalAngles = []; // Array to store vertical angles
         let horizontalAngles = []; // Array to store horizontal angles
         let isVerticalTest = true; // Flag to switch between tests
@@ -74,9 +75,43 @@
             testCounter.textContent = `${currentTest}/6`;
         };
         
+        // 이전 각도와 15도 이상 차이나는 새로운 랜덤 각도 생성하는 함수
+        const generateNewAngle = (isVertical) => {
+            let newAngle;
+            let validAngle = false;
+            let attempts = 0;
+            const maxAttempts = 100; // 무한 루프 방지
+            
+            while (!validAngle && attempts < maxAttempts) {
+                // 테스트 유형에 따른 각도 범위 설정
+                if (isVertical) {
+                    newAngle = (Math.random() * 60) - 30; // -30 ~ +30 범위
+                } else {
+                    newAngle = (Math.random() * 60) + 60; // 60 ~ 120 범위
+                }
+                
+                // 이전 각도들과 비교하여 15도 이상 차이나는지 확인
+                validAngle = true;
+                for (let prevAngle of previousAngles) {
+                    if (Math.abs(newAngle - prevAngle) < 15) {
+                        validAngle = false;
+                        break;
+                    }
+                }
+                
+                attempts++;
+            }
+            
+            // 새 각도를 이전 각도 배열에 추가
+            previousAngles.push(newAngle);
+            return newAngle;
+        };
+        
         // 초기 카운터 표시
         updateTestCounter();
-
+        
+        // 초기 각도 생성
+        angle = generateNewAngle(true);
         rod.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
 
         const updateAngle = (change) => {
@@ -86,40 +121,40 @@
 
         // 각도를 정규화하여 0~90 또는 -90~0 범위로 변환하는 함수
         const normalizeAngle = (angle) => {
-    // 360도로 정규화
-    let normalizedAngle = angle % 360;
-    if (normalizedAngle < 0) {
-        normalizedAngle += 360;
-    }
+            // 360도로 정규화
+            let normalizedAngle = angle % 360;
+            if (normalizedAngle < 0) {
+                normalizedAngle += 360;
+            }
 
-    if (isVerticalTest) {
-        // SVV: 기존 수직 테스트 정규화 (0~90 또는 -90~0)
-        if (normalizedAngle > 90 && normalizedAngle <= 270) {
-            normalizedAngle = normalizedAngle - 180;
-        } else if (normalizedAngle > 270) {
-            normalizedAngle = normalizedAngle - 360;
-        }
-    } else {
-        // SVH: 수평 테스트 정규화
-        if (normalizedAngle > 90 && normalizedAngle <= 180) {
-            // 90~180도 구간: 91 → 1, 179 → 89, 89 → -1, 1 → -89
-            normalizedAngle = normalizedAngle - 90;
-        } else if (normalizedAngle > 180 && normalizedAngle <= 270) {
-            // 180~270도 구간: 181 → -89, 269 → -1
-            normalizedAngle = 270 - normalizedAngle;
-            normalizedAngle = -normalizedAngle;
-        } else if (normalizedAngle > 270 && normalizedAngle < 360) {
-            // 270~360도 구간: 271 → 1, 359 → 89
-            normalizedAngle = normalizedAngle - 270;
-        } else if (normalizedAngle >= 0 && normalizedAngle <= 90) {
-            // 0~90도 구간: 89 → -1, 1 → -89
-            normalizedAngle = 90 - normalizedAngle;
-            normalizedAngle = -normalizedAngle;
-        }
-    }
+            if (isVerticalTest) {
+                // SVV: 기존 수직 테스트 정규화 (0~90 또는 -90~0)
+                if (normalizedAngle > 90 && normalizedAngle <= 270) {
+                    normalizedAngle = normalizedAngle - 180;
+                } else if (normalizedAngle > 270) {
+                    normalizedAngle = normalizedAngle - 360;
+                }
+            } else {
+                // SVH: 수평 테스트 정규화
+                if (normalizedAngle > 90 && normalizedAngle <= 180) {
+                    // 90~180도 구간: 91 → 1, 179 → 89, 89 → -1, 1 → -89
+                    normalizedAngle = normalizedAngle - 90;
+                } else if (normalizedAngle > 180 && normalizedAngle <= 270) {
+                    // 180~270도 구간: 181 → -89, 269 → -1
+                    normalizedAngle = 270 - normalizedAngle;
+                    normalizedAngle = -normalizedAngle;
+                } else if (normalizedAngle > 270 && normalizedAngle < 360) {
+                    // 270~360도 구간: 271 → 1, 359 → 89
+                    normalizedAngle = normalizedAngle - 270;
+                } else if (normalizedAngle >= 0 && normalizedAngle <= 90) {
+                    // 0~90도 구간: 89 → -1, 1 → -89
+                    normalizedAngle = 90 - normalizedAngle;
+                    normalizedAngle = -normalizedAngle;
+                }
+            }
 
-    return normalizedAngle;
-};
+            return normalizedAngle;
+        };
 
         const handleSpace = () => {
             const normalizedAngle = normalizeAngle(angle);
@@ -132,9 +167,9 @@
                 
                 if (verticalAngles.length === 3) {
                     isVerticalTest = false; // Switch to horizontal test
-                    angle = (Math.random() * 60) + 60; // Reset angle for horizontal test between 60 and 120 degrees
+                    angle = generateNewAngle(false); // 수평 테스트용 새 각도 생성
                 } else {
-                    angle = (Math.random() * 60) - 30; // New random angle for vertical test
+                    angle = generateNewAngle(true); // 수직 테스트용 새 각도 생성
                 }
             } else {
                 horizontalAngles.push(normalizedAngle); // 정규화된 각도 저장
@@ -147,7 +182,7 @@
                     localStorage.setItem('horizontalAngles', JSON.stringify(horizontalAngles));
                     window.location.href = 'report.html'; // Redirect to report page
                 } else {
-                    angle = (Math.random() * 60) + 60; // New random angle for horizontal test
+                    angle = generateNewAngle(false); // 수평 테스트용 새 각도 생성
                 }
             }
             rod.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
@@ -166,19 +201,31 @@
             if (isVerticalTest) {
                 if (verticalAngles.length > 0) {
                     verticalAngles.pop(); // 마지막으로 저장된 수직 각도 제거
-                    angle = (Math.random() * 60) - 30; // 새로운 수직 테스트 각도 설정
+                    // 이전 각도도 제거 (가장 최근에 추가된 것)
+                    if (previousAngles.length > 0) {
+                        previousAngles.pop();
+                    }
+                    angle = generateNewAngle(true); // 새로운 수직 테스트 각도 설정
                 }
             } else {
                 if (horizontalAngles.length > 0) {
                     horizontalAngles.pop(); // 마지막으로 저장된 수평 각도 제거
-                    angle = (Math.random() * 60) + 60; // 새로운 수평 테스트 각도 설정
+                    // 이전 각도도 제거 (가장 최근에 추가된 것)
+                    if (previousAngles.length > 0) {
+                        previousAngles.pop();
+                    }
+                    angle = generateNewAngle(false); // 새로운 수평 테스트 각도 설정
                 } else {
                     // 수평 각도가 없는 경우 수직 테스트로 돌아감
                     isVerticalTest = true;
                     if (verticalAngles.length > 0) {
                         verticalAngles.pop(); // 마지막 수직 각도 제거
+                        // 이전 각도도 제거 (가장 최근에 추가된 것)
+                        if (previousAngles.length > 0) {
+                            previousAngles.pop();
+                        }
                     }
-                    angle = (Math.random() * 60) - 30; // 수직 테스트 각도 설정
+                    angle = generateNewAngle(true); // 수직 테스트 각도 설정
                 }
             }
             
